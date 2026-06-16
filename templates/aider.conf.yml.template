@@ -1,0 +1,64 @@
+# .aider.conf.yml — 执行引擎全局配置
+# 本文件由 Meta-Agent-Protocol (MAP) 的 setup_map.sh 从模板生成。
+# 执行引擎在根目录启动时自动加载此文件。
+
+# ─── 模型配置 ───
+# 推荐 DeepSeek v4 Pro — 成本优势 + 强推理能力（成本约为 Claude 的 1/5~1/10）
+# 也可替换为 claude-opus-4-8 / claude-fable-5
+model: deepseek/deepseek-v4-pro
+
+# ─── API Key 配置 ───
+# DeepSeek API Key。如果使用其他模型，需修改 LiteLLM model string。
+# 启动前请执行:
+#   export DEEPSEEK_API_KEY="your-key"
+#
+# 或者直接使用 --api-key 参数:
+#   aider --model deepseek/deepseek-v4-pro --api-key deepseek="$DEEPSEEK_API_KEY"
+
+# ─── 仓库地图 ───
+# 启用 tree-sitter 仓库地图，让执行引擎感知全局代码结构
+map-tokens: 8000
+
+# ─── Git 集成 ───
+auto-commits: true
+# 自动生成 Conventional Commits 格式的 commit message
+
+# ─── 级联 Convention 自动加载 ───
+# 执行引擎在修改文件时会自动读取目标目录的 CONVENTIONS.md
+# （执行引擎默认行为：自动读取同级和上级目录的 CONVENTIONS.md）
+
+# ─── 系统提示词 ───
+# 全局 Agent 启动时加载的上下文
+message: |
+  你是 {{WORKSPACE_NAME}} 的全局架构执行引擎 (Executor)。
+
+  ## 启动时必读 (按顺序)
+  在修改任何文件前，请先阅读:
+  1. 根目录的 WORKSPACE_MAP.md — 了解全局项目拓扑和依赖隔离红线
+  2. 根目录的 AI_RULES.md — 了解行为宪法 (9 法则)
+  3. 目标子项目的 CONVENTIONS.md — 了解地方法规 (技术栈、禁止行为)
+  4. 目标子项目的 PRD 文档 — 了解该项目的功能规格和当前版本
+  {{PRD_DOC_MAP}}
+
+  ## 开发完成后强制操作 (PRD Sync Iron Law)
+  任何功能开发完成后，你**必须**同时更新两个文件，缺一不可:
+  1. **ROADMAP.md** — 将对应的任务 ID 标记为 ✅
+  {{ROADMAP_PATH_MAP}}
+  2. **主 PRD** — 新增/修改本功能对应的功能章节
+  {{PRD_PATH_MAP}}
+  ⚠️ 禁止只改 ROADMAP 不改 PRD。"下次再更新" = 永远不会更新。
+
+  ## Git Push 策略 (防止代码本地堆积)
+  每完成一个独立任务 (ROADMAP + PRD 已更新，测试绿灯) 后，必须立即推送:
+  1. `git add -A && git commit -m "<type>(<scope>): <description>"` (Conventional Commits 格式)
+  2. `git push origin <branch>` — 推送 feature branch 到远端
+  3. 如果该任务对应一个 PRD proposal，在 commit body 中引用 proposal 文件名
+  4. **禁止**任务完成后不 push，让代码在本地堆积
+  5. **禁止**多个不相关任务混在一个 commit 中
+
+  ## 核心铁律
+  - TDD 门禁：修改代码前先写 failing test，修改后立即运行测试，红灯→修正→绿灯→完成
+  - 依赖隔离：各系统独立部署，跨系统通信必须通过 MCP 或 CLI --raw JSON
+  - import-linter：构建系统会拦截跨系统 import，不要尝试绕过 (make lint-arch)
+  - 人格切换：修改 meta-docs/ 时可用放松口吻；修改源代码时用严谨工程师语言，禁止在代码注释和 commit message 中使用游戏化词汇
+  - Git 规范 (SLAIB): checkout -b feature branch → commit → push → gh pr create，禁止直接 push main

@@ -1,0 +1,17 @@
+[importlinter]
+root_packages =
+{{PACKAGE_LIST}}
+
+[importlinter:contract:independence]
+name = Core systems must be independently deployable
+type = independence
+modules =
+{{MODULE_LIST}}
+ignore_imports =
+{{IGNORE_IMPORTS}}
+
+[importlinter:contract:layers]
+name = Layer discipline — cross-system communication via MCP/CLI only
+type = layers
+layers =
+{{LAYER_LIST}}

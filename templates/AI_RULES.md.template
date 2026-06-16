@@ -1,0 +1,211 @@
+# AI_RULES.md — 全局 Agent 行为宪法
+
+> 本文件由 Meta-Agent-Protocol (MAP) 的 `setup_map.sh` 从模板生成。
+> 适用对象：在宿主仓库根目录启动的任何 AI Agent（Aider、Claude Code、Cursor 等）。
+> 版本：v1.0.0 (generated from MAP v1.0.0)
+
+---
+
+## 法则一：人格切换 (Persona Shifting)
+
+**你在不同目录下必须切换语言风格：**
+
+| 目录 | 人格 | 语言风格 |
+|------|:--:|------|
+| `meta-docs/` | 架构师 | 允许隐喻和游戏化表达 |
+| 任何子项目源代码目录 | IEEE 工程师 | **绝对严谨**，禁止任何游戏化词汇、emoji 修饰、拟人化表达 |
+| Git Commit Message | IEEE 工程师 | **绝对无菌**，Conventional Commits 格式 |
+| 测试代码 / 错误日志 | IEEE 工程师 | 保留原汁原味的堆栈跟踪，禁止 paraphrase |
+
+**违规示例**：
+- ❌ 在源代码注释中写游戏化隐喻
+- ❌ 在 Git commit 中写 emoji 或游戏化表达
+- ✅ `feat(gateway): add MCP-to-OpenAI adapter`
+
+## 法则二：TDD 门禁 (The TDD Gate)
+
+**对任何源代码文件（`.py` / `.ts` / `.vue` / `.rs` / `.go`）的修改，必须通过 TDD 门禁：**
+
+```
+1. 修改前：确认存在对应的 failing test（或先写 test）
+2. 修改代码
+3. 立即运行该模块的测试套件
+4. 红灯 → 分析失败原因 → 修正 → 回到步骤 3
+5. 绿灯 → 声明完成
+```
+
+**具体命令** (按子项目)：{{TEST_COMMANDS}}
+
+**豁免**：纯文档修改（`.md` 文件）、配置修改（`.yaml` / `.json` / `.sql` / `.toml`）不需要 TDD 门禁。
+
+## 法则三：红线禁区 (No-Go Zones)
+
+**以下文件绝对禁止修改（架构师层专属）：**
+
+| 文件 | 理由 |
+|------|------|
+| `CLAUDE.md` | AI Agent 操作边界定义 |
+| `AI_RULES.md` | 本文件 — 全局 Agent 宪法 |
+| `WORKSPACE_MAP.md` | 全局坐标系 |
+| 任何子项目的 `CLAUDE.md` | 子项目自有行为规范 |
+| 任何子项目的 `ROADMAP.md` | 子项目自有进度追踪 |
+| 任何子项目的 `GUARDRAILS.md` / `CONVENTIONS.md` | 子项目自有红线 |
+| `contracts/` | 跨系统接口契约快照（变更需对应实现） |
+{{REDLINE_EXTRA}}
+
+## 法则四：跨系统修改申报 (Cross-System Change Declaration)
+
+**如果一次修改同时涉及两个或更多独立子项目，必须：**
+
+1. 在 commit message 中标注 `cross-system: <affected projects>`
+2. 在 PR body 中说明跨系统影响范围
+3. 运行全局回归测试套件
+
+**示例**：
+```
+feat(project_a,project_b): add shared interface
+
+cross-system: ProjectA + ProjectB
+- ProjectA: new MCP tool xxx
+- ProjectB: cli.py parses new tool call format
+- Contract: updated contracts/xxx.json
+```
+
+## 法则五：Git 工作流 (SLAIB) + Push 频率策略
+
+### SLAIB 短期分支流
+1. 任何修改前 `git checkout -b <type>/<desc>`
+2. 修改完成后 push 分支
+3. 通过 `gh pr create --fill` 发起 PR
+4. **严禁**直接 push main（main 应写保护）
+5. PR Merge 后 `git fetch --prune` 清理
+6. **严禁** `git push --force` 任何分支
+
+### Push 频率策略
+
+**每完成一个独立任务后，必须立即 push：**
+
+| 时机 | 操作 |
+|------|------|
+| 任务完成 (tests 绿灯, ROADMAP ✅, PRD 更新) | `git commit` + `git push origin <branch>` |
+| 每完成 1-3 个相关任务 | `gh pr create --fill` |
+| Session 结束前 | push 所有未推送分支 |
+| 跨天任务 | 每日结束前至少 push 一次 |
+
+**Commit 格式** (Conventional Commits):
+```
+<type>(<scope>): <short description>
+
+<optional body>
+```
+**禁止**：任务完成后不 push，让代码在本地堆积。
+
+## 法则六：全局测试编排 + 架构边界检查 + PRD 同步
+
+```bash
+# 修改任何子项目后，至少运行该子项目的测试
+# 修改跨系统接口 (contracts/、MCP schema) 后，必须运行全局回归
+make test-all    # = lint-arch + {{TEST_TARGETS}}
+```
+
+`make test-all` 第一步是 `lint-arch`（import-linter），它会拦截任何跨系统 import。**这是物理级城墙，不要尝试绕过。**
+
+### PRD 同步铁律
+
+**任何功能开发完成后，必须同时更新两个文件：**
+
+| 更新目标 | 更新内容 |
+|---------|---------|
+| **ROADMAP.md** | 对应任务 ID → ✅ |
+| **主 PRD** | 新增/修改本功能对应的功能章节 |
+
+**主 PRD 路径映射**：{{PRD_PATH_MAP}}
+
+⚠️ **禁止只改 ROADMAP 不改 PRD**。
+
+## 法则七：级联法规封地 (Cascading Conventions)
+
+**你在不同子项目目录下必须遵守不同的"地方法规"：**
+
+| 规则文件 | 层级 | 何时读取 |
+|---------|:--:|---------|
+| `THE_CODEX.md` (MAP) | 联邦宪法 | 启动时 |
+| `AI_RULES.md` (本文件) | 宿主仓库行为法 | 启动时 |
+| `WORKSPACE_MAP.md` | 全局坐标系 | 启动时 |
+| `<子项目>/CONVENTIONS.md` | 地方法规 | 修改该子项目文件前 |
+
+**Aider 会自动读取目标文件所在目录及上级目录的 `CONVENTIONS.md`**。Claude Code 用户需手动 `/read`。
+
+各地方法规的核心约束：{{LOCAL_CONVENTIONS_SUMMARY}}
+
+## 法则八：Contract-First Prompting (契约优先指令)
+
+**在给全局 Agent 下达跨系统指令时，使用"契约握手指令"。**
+
+### ❌ 禁止
+```
+"给 ProjectA 和 ProjectB 加上联调功能，你看着改。"
+```
+
+### ✅ 正确
+```
+"跨系统开发任务：<简短描述>。
+
+Step 1 (<ProjectA> — 契约提供方)：
+查阅 <ProjectA>/CONVENTIONS.md。
+更新接口契约（JSON Schema），加入 <新字段>。
+完成后运行 <ProjectA 测试命令>。
+
+Step 2 (<ProjectB> — 契约消费方)：
+根据 Step 1 确定的 Schema 实现。
+禁止跨系统 import，使用 MCP/CLI 接口。
+完成后运行 <ProjectB 测试命令>。
+
+Step 3 (全局联调)：
+运行 make test-all。如遇 lint-arch 报错 → 自行回退并改用 MCP/CLI 接口。"
+```
+
+### 契约指令三要素
+
+| 要素 | 含义 | 示例 |
+|------|------|------|
+| **领域声明** | 明确当前步骤的目标项目 | "Step 1 (SROS — 契约提供方)" |
+| **契约定义** | 该步骤的输入/输出 Schema | `{age_range: {min: int, max: int}}` |
+| **验收命令** | 该步骤完成后运行的测试 | "运行 make test-xxx" |
+
+---
+
+## 法则九：微循环节拍器 (Micro-loop Metronome)
+
+> 适用于：Claude Code（架构师）唤醒 Aider（执行者）执行编码任务时
+
+### 核心原则
+
+**架构师是节拍器，执行者是执行器。架构师不能把 7 个步骤一次性甩给执行者。**
+
+### 执行规则
+
+1. **原子化拆解**：把任务拆成 L0-L2 级别的小步。一次 Aider 调用 = 一个文件（默认 L1）
+2. **Task 文件**：每次调用前生成 `/tmp/.aider_task.md`，包含 Context、Files、Contract、Do NOT
+3. **架构师跑测试**：Aider 退出后，由 Claude Code 运行 pytest。Aider 不跑测试
+4. **纠错循环**：红灯 → 架构师读报错 → 更新 task 文件 → 重唤 Aider → 直到绿灯
+5. **文件限定**：指定 Aider 可以修改的文件列表，防止越界修改
+6. **超时控制**：执行超过 2 分钟无响应 → 停止进程 → 检查日志 → 拆分更小步骤
+
+### 调用模板
+
+```bash
+# Step 1: 架构师生成 task 文件
+# Step 2: 架构师调用委派脚本
+./delegate_to_aider.sh /tmp/.aider_task.md <target_file.py>
+
+# Step 3: 架构师验证
+cd <project> && python3 -m pytest tests/ -v
+
+# Step 4: 红灯 → 更新 task → 重复 Step 2
+```
+
+---
+
+> ⚠️ 违反以上任何法则的修改，在 PR Review 时将被拒绝。
+> 本文件由 MAP (Meta-Agent-Protocol) 提供。版本升级：`cd conventions && git pull origin main`
