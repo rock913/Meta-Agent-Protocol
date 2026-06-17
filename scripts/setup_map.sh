@@ -13,7 +13,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-HOST_ROOT="$(cd "$MAP_ROOT/../.." && pwd)"
+HOST_ROOT="$(cd "$MAP_ROOT/.." && pwd)"
 
 FORCE=false
 if [[ "${1:-}" == "--force" ]]; then
