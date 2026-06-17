@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] — 2026-06-17
+
+### Added
+
+- **INTEGRATION.md**: Universal host repo integration guide — covers both Greenfield (new repo) and Migration (from embedded conventions) paths, with complete {{PLACEHOLDER}} reference table, Makefile template, verification checklist, and daily operations
+
+### Fixed
+
+- **scripts/setup_map.sh**: Correct HOST_ROOT path — use `MAP_ROOT/..` (one level up) instead of `../..` (two levels up). MAP is installed at `conventions/` directly under repo root.
+- **scripts/heartbeat.sh**: Same HOST_ROOT path fix
+
+---
+
 ## [1.0.0] — 2026-06-16
 
 ### Added — Initial Scaffold
