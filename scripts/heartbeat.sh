@@ -16,8 +16,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # 尝试自动检测宿主仓库根目录
-# 如果 MAP 作为 git submodule 引入，宿主根 = MAP_ROOT/../..
-HOST_ROOT="$(cd "$MAP_ROOT/../.." && pwd 2>/dev/null || echo "")"
+# MAP 安装在 conventions/ (repo root)，宿主根 = MAP_ROOT/..
+HOST_ROOT="$(cd "$MAP_ROOT/.." && pwd 2>/dev/null || echo "")"
 if [ -z "$HOST_ROOT" ] || [ ! -f "$HOST_ROOT/Makefile" ]; then
     # 回退：假设从宿主仓库直接调用
     HOST_ROOT="$(pwd)"
